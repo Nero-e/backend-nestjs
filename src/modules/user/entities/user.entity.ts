@@ -13,14 +13,13 @@ export class User {
 
   @Column({ name: 'role' })
   public role: boolean;
-  
+
   @Column({ name: 'is_active' })
   public isActive: boolean;
 
   @Column({ name: 'is_deleted' })
   public isDeleted: boolean;
-  
+
   @Column({ name: 'password' })
   public password: string;
-
 }
