@@ -17,12 +17,16 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
+  // Encontrar todos los usuarios
   public findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
+  // Encontrar un usuario por ID
   public async findOne(idUser: number): Promise<User | undefined> {
-    const user = this.userRepository.findOne({ where: { idUser: idUser } });
+    const user = await this.userRepository.findOne({
+      where: { idUser: idUser },
+    });
 
     if (!user) {
       return null;
@@ -31,50 +35,49 @@ export class UserService {
     return user;
   }
 
+  // Encontrar un usuario por email
   public findUserByEmail(emailData: string): Promise<User | undefined> {
     const email = this.userRepository.findOne({ where: { email: emailData } });
 
     return email;
   }
 
-  public async createUser(
-    data: CreateUserDto,
-  ): Promise<{ success: boolean; message: string }> {
-    const { email } = data;
-    const user = await this.findUserByEmail(email);
+  // Crear un nuevo usuario
+  public async createUser(data: CreateUserDto): Promise<User> {
+    try {
+      const { email } = data;
+      const user = await this.findUserByEmail(email);
 
-    if (user) {
-      return { success: false, message: 'El usuario ya existe' };
+      if (user) {
+        return null;
+      }
+
+      const newUser = this.userRepository.create({
+        ...data,
+        isActive: true,
+        isDeleted: false,
+      });
+
+      const hashedPassword: string = await bcrypt.hash(data.password, 10);
+      newUser.password = hashedPassword;
+
+      const savedUser = await this.userRepository.save(newUser);
+      const { password, ...result } = savedUser;
+
+      return result;
+    } catch (error) {
+      throw new BadRequestException('Error al crear el usuario');
     }
-
-    const newUser = this.userRepository.create({
-      ...data,
-      isActive: true,
-      isDeleted: false,
-    });
-
-    const hashedPassword: string = await bcrypt.hash(data.password, 10);
-    newUser.password = hashedPassword;
-
-    const savedUser = await this.userRepository.save(newUser);
-    const { password, ...result } = savedUser;
-
-    return { success: true, message: 'Ok' };
   }
 
-  public async updateUser(
-    idUser: number,
-    data: UpdateUserDto,
-  ): Promise<{ success: boolean; message: string }> {
+  // Actualizar un usuario existente
+  public async updateUser(idUser: number, data: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { idUser: idUser },
     });
 
     if (!user) {
-      return {
-        success: false,
-        message: `El usuario con id ${idUser} no se encontro`,
-      };
+      return null;
     }
 
     if (data.isActive && user.isDeleted) {
@@ -84,6 +87,20 @@ export class UserService {
     const updatedUser = this.userRepository.merge(user, data);
     await this.userRepository.save(updatedUser);
 
-    return { success: true, message: 'Ok' };
+    return user;
+  }
+
+  // Eliminar (soft) un usuario existente
+  public async deleteUser(idUser: number): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { idUser: idUser },
+    });
+    if (!user) {
+      return null;
+    }
+    user.isActive = false;
+    user.isDeleted = true;
+    await this.userRepository.save(user);
+    return user;
   }
 }

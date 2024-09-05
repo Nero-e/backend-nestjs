@@ -18,5 +18,3 @@ export class CreateUserDto {
   @IsNotEmpty()
   public readonly password?: string;
 }
-
-// export class UpdateUserDto extends PartialType(CreateUserDto) {}

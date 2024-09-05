@@ -21,5 +21,5 @@ export class User {
   public isDeleted: boolean;
 
   @Column({ name: 'password' })
-  public password: string;
+  public password?: string;
 }

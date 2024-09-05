@@ -18,5 +18,3 @@ export class UpdateUserDto {
   @IsBoolean()
   public isActive: boolean;
 }
-
-// export class CreateUserDto extends PartialType(UpdateUserDto) {}
