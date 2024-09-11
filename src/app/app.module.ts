@@ -16,15 +16,15 @@ import { enviroments } from './enviroments';
       load: [config],
       isGlobal: true,
       validationSchema: Joi.object({
+        JWT_SECRET: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.number().default(5432),
         DB_USER: Joi.string().required(),
         DB_PASS: Joi.string().required(),
         DB_NAME: Joi.string().required(),
-        DB_SSL: Joi.boolean().default(false),
+        // DB_SSL: Joi.boolean().default(false),
       }),
     }),
-    ,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -32,18 +32,18 @@ import { enviroments } from './enviroments';
           configService.get<string>('DB_PORT') ?? '5432',
           10,
         );
-        const isSSL = configService.get<boolean>('DB_SSL');
+        // const isSSL = configService.get<boolean>('DB_SSL');
 
         return {
           type: 'postgres',
           host: configService.get<string>('DB_HOST'),
-          port,
+          port: port,
           username: configService.get<string>('DB_USER'),
           password: configService.get<string>('DB_PASS'),
           database: configService.get<string>('DB_NAME'),
-          ssl: isSSL ? { rejectUnauthorized: false } : undefined,
           entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-          synchronize: true,
+          synchronize: false,
+          // ssl: isSSL ? { rejectUnauthorized: false } : undefined,
         };
       },
       inject: [ConfigService],

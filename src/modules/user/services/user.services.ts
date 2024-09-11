@@ -43,13 +43,15 @@ export class UserService {
   }
 
   // Crear un nuevo usuario
-  public async createUser(data: CreateUserDto): Promise<User> {
+  public async createUser(
+    data: CreateUserDto,
+  ): Promise<{ exists: boolean; user?: User }> {
     try {
       const { email } = data;
       const user = await this.findUserByEmail(email);
 
       if (user) {
-        return null;
+        return { exists: true };
       }
 
       const newUser = this.userRepository.create({
@@ -64,7 +66,7 @@ export class UserService {
       const savedUser = await this.userRepository.save(newUser);
       const { password, ...result } = savedUser;
 
-      return result;
+      return { exists: false, user: result };
     } catch (error) {
       throw new BadRequestException('Error al crear el usuario');
     }

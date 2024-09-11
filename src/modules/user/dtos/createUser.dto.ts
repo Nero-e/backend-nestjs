@@ -16,5 +16,9 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  public readonly role?: boolean;
+
+  @IsString()
+  @IsNotEmpty()
   public readonly password?: string;
 }

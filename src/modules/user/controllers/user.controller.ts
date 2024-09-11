@@ -43,9 +43,9 @@ export class userController {
   public async createUser(
     @Body() payload: CreateUserDto,
   ): Promise<ResponseDto<User>> {
-    const user = await this.userService.createUser(payload);
+    const { exists, user } = await this.userService.createUser(payload);
 
-    if (user) {
+    if (exists) {
       throw new BadRequestException('El usuario ya existe');
     }
 
@@ -77,12 +77,12 @@ export class userController {
 
   @Put('delete/:id')
   public async deleteUser(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) idUser: number,
   ): Promise<ResponseDto<User>> {
-    const user = await this.userService.deleteUser(id);
+    const user = await this.userService.deleteUser(idUser);
 
     if (!user) {
-      throw new NotFoundException(`El usuario ${id} no se encontro`);
+      throw new NotFoundException(`El usuario ${idUser} no se encontro`);
     }
 
     return {
