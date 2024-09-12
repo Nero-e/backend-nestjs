@@ -16,7 +16,7 @@ import { UserService } from '../services/user.services';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/createUser.dto';
 import { UpdateUserDto } from '../dtos/updateUser.dto';
-import { ResponseDto } from '../dtos/response.dto';
+import { ResponseDto } from 'src/common/dto/response.dto';
 
 @Controller('users')
 export class userController {
@@ -32,7 +32,7 @@ export class userController {
     const user = await this.userService.findOne(idUser);
 
     if (!user) {
-      throw new NotFoundException(`User with id ${idUser} not found`);
+      throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
     }
 
     return user;
@@ -43,9 +43,9 @@ export class userController {
   public async createUser(
     @Body() payload: CreateUserDto,
   ): Promise<ResponseDto<User>> {
-    const { exists, user } = await this.userService.createUser(payload);
+    const user = await this.userService.createUser(payload);
 
-    if (exists) {
+    if (user) {
       throw new BadRequestException('El usuario ya existe');
     }
 

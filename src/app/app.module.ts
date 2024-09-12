@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from 'src/modules/user/user.module';
 import { enviroments } from './enviroments';
+import { RolesModule } from 'src/modules/role/role.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { enviroments } from './enviroments';
       inject: [ConfigService],
     }),
     UsersModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

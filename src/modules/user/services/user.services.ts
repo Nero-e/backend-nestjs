@@ -43,15 +43,13 @@ export class UserService {
   }
 
   // Crear un nuevo usuario
-  public async createUser(
-    data: CreateUserDto,
-  ): Promise<{ exists: boolean; user?: User }> {
+  public async createUser(data: CreateUserDto): Promise<User | null> {
     try {
       const { email } = data;
       const user = await this.findUserByEmail(email);
 
       if (user) {
-        return { exists: true };
+        return null;
       }
 
       const newUser = this.userRepository.create({
@@ -66,30 +64,37 @@ export class UserService {
       const savedUser = await this.userRepository.save(newUser);
       const { password, ...result } = savedUser;
 
-      return { exists: false, user: result };
+      return result;
     } catch (error) {
       throw new BadRequestException('Error al crear el usuario');
     }
   }
 
   // Actualizar un usuario existente
-  public async updateUser(idUser: number, data: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { idUser: idUser },
-    });
+  public async updateUser(
+    idUser: number,
+    data: Partial<UpdateUserDto>,
+  ): Promise<User | null> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { idUser: idUser },
+      });
 
-    if (!user) {
-      return null;
+      if (!user) {
+        return null;
+      }
+
+      if (data.isActive && user.isDeleted) {
+        user.isDeleted = false;
+      }
+
+      const updatedUser = this.userRepository.merge(user, data);
+      await this.userRepository.save(updatedUser);
+
+      return user;
+    } catch (error) {
+      throw new BadRequestException('Error al actualizar el usuario');
     }
-
-    if (data.isActive && user.isDeleted) {
-      user.isDeleted = false;
-    }
-
-    const updatedUser = this.userRepository.merge(user, data);
-    await this.userRepository.save(updatedUser);
-
-    return user;
   }
 
   // Eliminar (soft) un usuario existente
