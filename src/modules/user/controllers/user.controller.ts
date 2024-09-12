@@ -17,6 +17,7 @@ import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/createUser.dto';
 import { UpdateUserDto } from '../dtos/updateUser.dto';
 import { ResponseDto } from 'src/common/dto/response.dto';
+import { console } from 'inspector';
 
 @Controller('users')
 export class userController {
@@ -28,8 +29,10 @@ export class userController {
   }
 
   @Get(':idUser')
-  public async getUserById(idUser: number): Promise<User | undefined> {
-    const user = await this.userService.findOne(idUser);
+  public async getUserById(
+    @Param('idUser', ParseIntPipe) idUser: number,
+  ): Promise<User> {
+    const user = await this.userService.findUser(idUser);
 
     if (!user) {
       throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
@@ -65,7 +68,7 @@ export class userController {
     const user = await this.userService.updateUser(idUser, payload);
 
     if (!user) {
-      throw new NotFoundException(`El usuario ${idUser} no se encontro`);
+      throw new NotFoundException(`El usuario con id ${idUser} no se encontro`);
     }
 
     return {

@@ -23,15 +23,16 @@ export class UserService {
   }
 
   // Encontrar un usuario por ID
-  public async findOne(idUser: number): Promise<User | undefined> {
+  public async findUser(idUser: number): Promise<User | null> {
     const user = await this.userRepository.findOne({
       where: { idUser: idUser },
     });
-
+    console.log(idUser);
     if (!user) {
       return null;
     }
 
+    // Si existe, devuelve el usuario
     return user;
   }
 

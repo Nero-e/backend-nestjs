@@ -8,11 +8,14 @@ export class User {
   @Column({ name: 'name' })
   public name: string;
 
+  @Column({ name: 'username' })
+  public username: string;
+
   @Column({ name: 'email' })
   public email: string;
 
-  @Column({ name: 'role' })
-  public role: boolean;
+  @Column({ name: 'id_role' })
+  public role: number;
 
   @Column({ name: 'is_active' })
   public isActive: boolean;
