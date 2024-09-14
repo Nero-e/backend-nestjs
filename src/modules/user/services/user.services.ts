@@ -5,21 +5,27 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/createUser.dto';
+import { RoleService } from 'src/modules/role/services/role.service';
 import { UpdateUserDto } from '../dtos/updateUser.dto';
+import { PasswordService } from './password.services';
+import { Role } from 'src/modules/role/entities/role.entity';
 
 @Injectable()
 export class UserService {
   public constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly roleService: RoleService,
+    private readonly passwordService: PasswordService,
   ) {}
 
   // Encontrar todos los usuarios
   public findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      relations: ['role'],
+    });
   }
 
   // Encontrar un usuario por ID
@@ -27,18 +33,18 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { idUser: idUser },
     });
-    console.log(idUser);
     if (!user) {
-      return null;
+      throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
     }
 
-    // Si existe, devuelve el usuario
     return user;
   }
 
   // Encontrar un usuario por email
-  public findUserByEmail(emailData: string): Promise<User | undefined> {
-    const email = this.userRepository.findOne({ where: { email: emailData } });
+  public async findUserByEmail(emailData: string): Promise<User | undefined> {
+    const email = await this.userRepository.findOne({
+      where: { email: emailData },
+    });
 
     return email;
   }
@@ -46,28 +52,35 @@ export class UserService {
   // Crear un nuevo usuario
   public async createUser(data: CreateUserDto): Promise<User | null> {
     try {
-      const { email } = data;
-      const user = await this.findUserByEmail(email);
+      const { email, idRole, password } = data;
 
-      if (user) {
-        return null;
+      const existingUser = await this.findUserByEmail(email);
+      if (existingUser) {
+        throw new BadRequestException(
+          `El usuario con email ${email} ya existe`,
+        );
       }
+
+      const role = await this.roleService.findOne(idRole);
+      const hashedPassword = await this.passwordService.hashPassword(password);
 
       const newUser = this.userRepository.create({
         ...data,
         isActive: true,
         isDeleted: false,
+        password: hashedPassword,
+        role,
       });
 
-      const hashedPassword: string = await bcrypt.hash(data.password, 10);
-      newUser.password = hashedPassword;
-
       const savedUser = await this.userRepository.save(newUser);
-      const { password, ...result } = savedUser;
+
+      const { password: _, ...result } = savedUser;
 
       return result;
     } catch (error) {
-      throw new BadRequestException('Error al crear el usuario');
+      throw new BadRequestException(
+        `Error al crear el usuario: ${error.message}`,
+      );
     }
   }
 
@@ -82,7 +95,9 @@ export class UserService {
       });
 
       if (!user) {
-        return null;
+        throw new NotFoundException(
+          `El usuario con id ${idUser} no se encontro`,
+        );
       }
 
       if (data.isActive && user.isDeleted) {
@@ -104,8 +119,9 @@ export class UserService {
       where: { idUser: idUser },
     });
     if (!user) {
-      return null;
+      throw new NotFoundException(`El usuario ${idUser} no se encontro`);
     }
+
     user.isActive = false;
     user.isDeleted = true;
     await this.userRepository.save(user);

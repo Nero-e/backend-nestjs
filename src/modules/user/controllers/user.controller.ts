@@ -6,10 +6,8 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  NotFoundException,
   HttpCode,
   HttpStatus,
-  BadRequestException,
 } from '@nestjs/common';
 
 import { UserService } from '../services/user.services';
@@ -17,7 +15,6 @@ import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/createUser.dto';
 import { UpdateUserDto } from '../dtos/updateUser.dto';
 import { ResponseDto } from 'src/common/dto/response.dto';
-import { console } from 'inspector';
 
 @Controller('users')
 export class userController {
@@ -33,11 +30,6 @@ export class userController {
     @Param('idUser', ParseIntPipe) idUser: number,
   ): Promise<User> {
     const user = await this.userService.findUser(idUser);
-
-    if (!user) {
-      throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
-    }
-
     return user;
   }
 
@@ -47,10 +39,6 @@ export class userController {
     @Body() payload: CreateUserDto,
   ): Promise<ResponseDto<User>> {
     const user = await this.userService.createUser(payload);
-
-    if (user) {
-      throw new BadRequestException('El usuario ya existe');
-    }
 
     return {
       success: true,
@@ -67,10 +55,6 @@ export class userController {
   ): Promise<ResponseDto<User>> {
     const user = await this.userService.updateUser(idUser, payload);
 
-    if (!user) {
-      throw new NotFoundException(`El usuario con id ${idUser} no se encontro`);
-    }
-
     return {
       success: true,
       message: 'Usuario actualizado correctamente',
@@ -83,10 +67,6 @@ export class userController {
     @Param('id', ParseIntPipe) idUser: number,
   ): Promise<ResponseDto<User>> {
     const user = await this.userService.deleteUser(idUser);
-
-    if (!user) {
-      throw new NotFoundException(`El usuario ${idUser} no se encontro`);
-    }
 
     return {
       success: true,

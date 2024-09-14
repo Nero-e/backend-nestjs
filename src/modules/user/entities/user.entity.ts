@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Role } from 'src/modules/role/entities/role.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -14,8 +21,9 @@ export class User {
   @Column({ name: 'email' })
   public email: string;
 
-  @Column({ name: 'id_role' })
-  public role: number;
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'id_role' })
+  public role: Role;
 
   @Column({ name: 'is_active' })
   public isActive: boolean;

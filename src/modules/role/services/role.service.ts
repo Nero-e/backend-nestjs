@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -21,7 +25,7 @@ export class RoleService {
     });
 
     if (!role) {
-      return null;
+      throw new NotFoundException(`Rol con id ${idRole} encontrado`);
     }
 
     return role;
@@ -38,7 +42,7 @@ export class RoleService {
     const roleName = await this.findByName(name);
 
     if (roleName) {
-      return null;
+      throw new BadRequestException('El rol ya existe');
     }
 
     const role = await this.roleRepository.save(data);
@@ -55,7 +59,7 @@ export class RoleService {
     });
 
     if (!role) {
-      return null;
+      throw new BadRequestException(`El rol con id ${idRole} no se encontro`);
     }
 
     const updatedRole = this.roleRepository.merge(role, data);
@@ -71,7 +75,7 @@ export class RoleService {
       });
 
       if (!role) {
-        return null;
+        throw new NotFoundException(`El rol con id ${idRole} no se encontro`);
       }
       await this.roleRepository.delete(idRole);
 

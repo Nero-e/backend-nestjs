@@ -30,9 +30,7 @@ export class RoleController {
   @Get(':idrole')
   public async getRoleById(idRole: number): Promise<Role | undefined> {
     const role = await this.roleService.findOne(idRole);
-    if (!role) {
-      throw new NotFoundException(`Rol con id ${idRole} encontrado`);
-    }
+
     return role;
   }
 
@@ -42,9 +40,6 @@ export class RoleController {
     @Body() payload: Partial<Role>,
   ): Promise<ResponseDto<Role>> {
     const role = await this.roleService.createRole(payload);
-    if (!role) {
-      throw new BadRequestException('El rol ya existe');
-    }
 
     return {
       success: true,
@@ -60,9 +55,7 @@ export class RoleController {
     @Body() payload: UpdateRoleDto,
   ): Promise<ResponseDto<Role>> {
     const role = await this.roleService.updateRole(idRole, payload);
-    if (!role) {
-      throw new BadRequestException(`El rol con id ${idRole} no se encontro`);
-    }
+
     return {
       success: true,
       message: 'Rol actualizado correctamente',
@@ -75,10 +68,8 @@ export class RoleController {
   public async deleteRole(
     @Param('idRole', ParseIntPipe) idRole: number,
   ): Promise<{ deleted: boolean; message: string }> {
-    const role = await this.roleService.deleteRole(idRole);
-    if (!role) {
-      throw new NotFoundException(`El rol con id ${idRole} no se encontro`);
-    }
+    await this.roleService.deleteRole(idRole);
+
     return {
       deleted: true,
       message: 'Rol eliminado correctamente',
